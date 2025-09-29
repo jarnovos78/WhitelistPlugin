@@ -1,8 +1,8 @@
 name: WhitelistPlugin
 version: 1.0
 main: com.example.whitelistplugin.WhitelistPlugin
-api-version: 1.20
+api-version: 1.21
 commands:
   safeCords:
     description: Speichert deine Aktuellen Koordinaten mit deiner Beschreibung
-    usage: /safeCords <text>
+    usage: /safeCords <Name des Ortes>
