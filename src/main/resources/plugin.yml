@@ -6,3 +6,9 @@ commands:
   safeCords:
     description: Speichert deine Aktuellen Koordinaten mit deiner Beschreibung
     usage: /safeCords <Name des Ortes>
+  showAllCords:
+    description: Zeigt einem Spieler alle gespeicherten Koordinaten an
+    usage: /showAllCords
+  showPersonalCords:
+    description: Zeigt einem Spieler alle von ihm selbst gespeicherten Koordinaten an
+    usage: /showPersonalCords

@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -14,32 +15,68 @@ import spark.Spark;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class WhitelistPlugin extends JavaPlugin {
+public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
 
     private final String API_KEY = "T3Fees290DevW2";
 
     private final String WebhookURL = "https://discord.com/api/webhooks/1422160876227526656/mbqwQrJCCUeCmzLCs8LPLNsMn4k95u-wm3k55Lz--cuY8Qb-jFqW8WD4ncEGvc6LDly3";
+
+    private DataBaseManager dataBaseManager;
 
     @Override
     public void onEnable(){
         getLogger().info("Whitelist Plugin Enabled");
         Spark.port(4567);
         Spark.post("/whitelist" , this::whitelistPlayer);
+
+        dataBaseManager = new DataBaseManager();
+
+        try {
+            dataBaseManager.connect();
+            getLogger().info("SQLite verbunden!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onDisable(){
         Spark.stop();
         getLogger().info("Spark server wurde gestoppt");
+        try {
+            dataBaseManager.closeDataBase();
+            getLogger().info("SQLite wurde gestoppt");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, String @NotNull [] args) {
         if (command.getName().equalsIgnoreCase("safeCords")) {
             return safeCords(sender, args);
         }
+        if(command.getName().equalsIgnoreCase("showAllCords")){
+            return showCords(sender);
+        } else if (command.getName().equalsIgnoreCase("showPersonalCords")){
+            return showPrivateCords(sender);
+        }
         return false;
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, Command command, @NotNull String alias, String @NotNull [] args) {
+        List<String> completions = new ArrayList<>();
+        if (command.getName().equalsIgnoreCase("safeCords")) {
+            if (args.length == 1) {
+                completions.add("<Name des Ortes>");
+            }
+        }
+        return completions;
     }
 
     private String whitelistPlayer(Request request, Response response){
@@ -85,7 +122,7 @@ public class WhitelistPlugin extends JavaPlugin {
         String coordinates = "(" + x + ", " + y + ", " + z + ")";
         String coordinateDescription = String.join(" ", args);
 
-        String safedLocation = coordinateDescription + ", " + coordinates + " | " + playerName;
+        String safedLocation = coordinateDescription + " " + coordinates + " | " + playerName;
 
         //Nachricht für die Konsole
         getLogger().info(playerName + " hat folgende Koordinaten Gespeichert: " + safedLocation);
@@ -97,8 +134,46 @@ public class WhitelistPlugin extends JavaPlugin {
             return false;
         }
 
+        try {
+            dataBaseManager.safeCords(x, y, z, coordinateDescription, playerName);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
         sender.sendMessage("Location " + coordinateDescription + " wurde mit den folgenden Koordinaten gespeichert: " + coordinates);
         return true;
+    }
+
+    private boolean showCords(CommandSender sender){
+        try{
+            List<LocationEntity> cordList = dataBaseManager.loadCords();
+            for(LocationEntity location : cordList){
+                String message = location.getDescription() + " (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+                sender.sendMessage(message);
+            }
+            return true;
+
+        } catch (Exception e){
+            sender.sendMessage("Es ist ein Fehler beim Laden der Koordinaten aufgetreten. Bitte versuche es erneut.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean showPrivateCords(CommandSender sender){
+        try {
+            List<LocationEntity> cordList = dataBaseManager.loadPlayerSpecificCords(sender.getName());
+            for(LocationEntity location : cordList){
+                String message = location.getDescription() + " (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+                sender.sendMessage(message);
+            }
+            return true;
+        } catch (Exception e){
+            sender.sendMessage("Es ist ein Fehler beim Laden der Koordinaten aufgetreten. Bitte versuche es erneut.");
+            e.printStackTrace();
+            return false;
+        }
+
     }
 
 
