@@ -230,8 +230,13 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         String description = String.join(" ", args);
 
         try{
-            dataBaseManager.deletePrivateCords(playerName, description);
-            sender.sendMessage("Die Koordinaten mit Namen: " + description  + " wurden erfolgreich gelöscht!");
+            int deletet = dataBaseManager.deletePrivateCords(playerName, description);
+            if(deletet == 1){
+                sender.sendMessage("Die Koordinaten mit Namen: " + description  + " wurden erfolgreich gelöscht!");
+            } else {
+                sender.sendMessage("Koordinaten mit Namen: " + description + " existieren nicht!");
+            }
+
         } catch (SQLException e) {
             getLogger().warning("Fehler beim aufrufen der Datenbank beim Löschen von Koordinaten: " + description + " durch Spieler: " + playerName);
             getLogger().warning("Error: " + e);

@@ -121,13 +121,14 @@ public class DataBaseManager {
         statement.close();
     }
 
-    public void deletePrivateCords(String player, String description) throws SQLException {
+    public int deletePrivateCords(String player, String description) throws SQLException {
         String sql = "DELETE FROM coords WHERE Player = ? AND Description = ? AND accessPublic = false";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setString(1, player);
         statement.setString(2, description);
-        statement.executeUpdate();
+        int deletet = statement.executeUpdate();
         statement.close();
+        return deletet;
     }
 
     public void editPrivateCordsName(String descriptionAlt, String descriptionNeu, String player) throws SQLException {
