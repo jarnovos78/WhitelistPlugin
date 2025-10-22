@@ -12,3 +12,6 @@ commands:
   showCords:
     description: Zeigt einem Spieler gespeicherte Koordinaten an
     usage: /showCords <accesslevel>
+  deletePrivateCords:
+    description: Löscht die Koordinaten die diese Beschreibung haben
+    usage: /deletePrivateCords <Name des Ortes>

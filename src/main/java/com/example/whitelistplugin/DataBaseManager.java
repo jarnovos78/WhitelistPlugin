@@ -121,6 +121,25 @@ public class DataBaseManager {
         statement.close();
     }
 
+    public void deletePrivateCords(String player, String description) throws SQLException {
+        String sql = "DELETE FROM coords WHERE Player = ? AND Description = ? AND accessPublic = false";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setString(1, player);
+        statement.setString(2, description);
+        statement.executeUpdate();
+        statement.close();
+    }
+
+    public void editPrivateCordsName(String descriptionAlt, String descriptionNeu, String player) throws SQLException {
+        String sql = "UPDATE coords SET Description = ? WHERE Player = ? AND Description = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setString(1, descriptionNeu);
+        statement.setString(2, player);
+        statement.setString(3, descriptionAlt);
+        statement.executeUpdate();
+        statement.close();
+    }
+
     public void closeDataBase() throws SQLException {
         if(connection != null) connection.close();
     }

@@ -63,8 +63,11 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         if(command.getName().equalsIgnoreCase("safePrivateCords")) {
             return safeCords(sender, args, false);
         }
-        if(command.getName().equalsIgnoreCase("showCords")){
+        if(command.getName().equalsIgnoreCase("showCords")) {
             return showCords(sender, args);
+        }
+        if(command.getName().equalsIgnoreCase("deletePrivateCords")) {
+            return deletePrivateCords(sender, args);
         }
         return false;
     }
@@ -84,6 +87,10 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
             if (args.length == 1) {
                 completions.add("public");
                 completions.add("private");
+            }
+        } else if (command.getName().equalsIgnoreCase("deletePrivateCords")) {
+            if (args.length == 1) {
+                completions.add("<Name des Ortes>");
             }
         }
         return completions;
@@ -207,7 +214,29 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
             e.printStackTrace();
             return false;
         }
+    }
 
+    public boolean deletePrivateCords(CommandSender sender, String[] args){
+        if (args.length == 0) {
+            sender.sendMessage("Bitte gib einen Namen für den Ort an!");
+            return false;
+        }
+
+        if(!(sender instanceof Player player)){
+            sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden!");
+            return false;
+        }
+        String playerName = player.getName();
+        String description = String.join(" ", args);
+
+        try{
+            dataBaseManager.deletePrivateCords(playerName, description);
+            sender.sendMessage("Die Koordinaten mit Namen: " + description  + " wurden erfolgreich gelöscht!");
+        } catch (SQLException e) {
+            getLogger().warning("Fehler beim aufrufen der Datenbank beim Löschen von Koordinaten: " + description + " durch Spieler: " + playerName);
+            getLogger().warning("Error: " + e);
+        }
+        return true;
     }
 
 
