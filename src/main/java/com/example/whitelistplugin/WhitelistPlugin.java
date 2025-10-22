@@ -1,7 +1,9 @@
 package com.example.whitelistplugin;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -141,10 +143,21 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         int x = (int) playerLocation.getX();
         int y = (int) playerLocation.getY();
         int z = (int) playerLocation.getZ();
-        String coordinates = "(" + x + ", " + y + ", " + z + ")";
+        String coordinates = "[" + x + ", " + y + ", " + z + "]";
+
         String coordinateDescription = String.join(" ", args[1]);
 
         String safedLocation = coordinateDescription + " " + coordinates + " | " + playerName;
+
+        String dimension = "Overworld";
+        if(player.getLocation().getWorld().getEnvironment() == World.Environment.NETHER) {
+            dimension = "Nether";
+            safedLocation = coordinateDescription + " " + coordinates + " | " + playerName + " | " + dimension;
+        }
+        else if(player.getLocation().getWorld().getEnvironment() == World.Environment.THE_END) {
+            dimension = "End";
+            safedLocation = coordinateDescription + " " + coordinates + " | " + playerName + " | " + dimension;
+        }
 
         try {
             boolean alreadyExists = dataBaseManager.checkExists(coordinateDescription, accessPublic, playerName);
@@ -167,13 +180,13 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         }
 
         try {
-            dataBaseManager.safeCords(x, y, z, coordinateDescription, playerName, accessPublic);
+            dataBaseManager.safeCords(x, y, z, coordinateDescription, playerName, dimension, accessPublic);
         }catch (Exception e){
             getLogger().warning("Fehler beim aufrufen der Datenbank beim Speichern von Koordinaten: " + safedLocation);
             getLogger().warning("Error: " + e);
         }
 
-        sender.sendMessage("Location " + coordinateDescription + " wurde mit den folgenden Koordinaten gespeichert: " + coordinates);
+        sender.sendMessage("Location " + ChatColor.GOLD + coordinateDescription + ChatColor.WHITE + " wurde mit den folgenden Koordinaten gespeichert: " + ChatColor.AQUA + coordinates);
         //Nachricht für die Konsole
         getLogger().info(playerName + " hat folgende Koordinaten Gespeichert: " + safedLocation);
 
@@ -197,7 +210,18 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
                 sender.sendMessage("Es wurden noch keine Cords gespeichert!");
             }
             for (LocationEntity location : cordList) {
-                String message = location.getDescription() + " (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+                String message = ChatColor.GOLD + location.getDescription() +
+                        ChatColor.AQUA +
+                        " [" + location.getX() + ", " +
+                        location.getY() +
+                        ", " +
+                        location.getZ() + "]";
+                if(location.getDimension().equals("Nether")) {
+                    message = message + " | " + ChatColor.RED + "Nether";
+                }
+                if(location.getDimension().equals("End")) {
+                    message = message + " | " + ChatColor.BLACK + "End";
+                }
                 sender.sendMessage(message);
             }
             return true;
@@ -217,7 +241,18 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
                 return true;
             }
             for(LocationEntity location : cordList){
-                String message = location.getDescription() + " (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+                String message = ChatColor.GOLD + location.getDescription() +
+                        ChatColor.AQUA +
+                        " [" + location.getX() + ", " +
+                        location.getY() +
+                        ", " +
+                        location.getZ() + "]";
+                if(location.getDimension().equals("Nether")) {
+                    message = message + " | " + ChatColor.RED + "Nether";
+                }
+                if(location.getDimension().equals("End")) {
+                    message = message + " | " + ChatColor.BLACK + "End";
+                }
                 sender.sendMessage(message);
             }
             return true;

@@ -7,6 +7,7 @@ public class LocationEntity {
     private int y;
     private int z;
     private String playerName;
+    private String dimension;
 
     public String getDescription() {
         return description;
@@ -41,6 +42,13 @@ public class LocationEntity {
     }
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
+    }
+
+    public String getDimension() {
+        return dimension;
+    }
+    public void setDimension(String dimension) {
+        this.dimension = dimension;
     }
 
 }

@@ -36,6 +36,7 @@ public class DataBaseManager {
                 "z INTEGER, " +
                 "Description TEXT, " +
                 "Player TEXT, " +
+                "Dimension TEXT, " +
                 "accessPublic BOOLEAN, " +
                 "PRIMARY KEY (uuid))";
 
@@ -45,13 +46,13 @@ public class DataBaseManager {
     }
 
     public List<LocationEntity> loadCords() throws SQLException {
-        String sql = "SELECT Description, x, y, z, Player FROM coords WHERE accessPublic = true";
+        String sql = "SELECT Description, x, y, z, Player, Dimension FROM coords WHERE accessPublic = true";
         PreparedStatement statement = connection.prepareStatement(sql);
         return getLocationEntities(statement);
     }
 
     public List<LocationEntity> loadPlayerSpecificCords(String playerName) throws SQLException {
-        String sql = "SELECT Description, x, y, z, Player FROM coords WHERE Player = ?";
+        String sql = "SELECT Description, x, y, z, Player, Dimension FROM coords WHERE Player = ? AND accessPublic = false";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setString(1, playerName);
         return getLocationEntities(statement);
@@ -69,6 +70,7 @@ public class DataBaseManager {
             locationEntity.setY(resultSet.getInt("y"));
             locationEntity.setZ(resultSet.getInt("z"));
             locationEntity.setPlayerName(resultSet.getString("Player"));
+            locationEntity.setDimension(resultSet.getString("Dimension"));
             cordList.add(locationEntity);
         }
         resultSet.close();
@@ -105,9 +107,9 @@ public class DataBaseManager {
         return false;
     }
 
-    public void safeCords(int x, int y, int z, String description, String player, boolean accessPublic) throws SQLException {
+    public void safeCords(int x, int y, int z, String description, String player, String dimension, boolean accessPublic) throws SQLException {
         UUID uuid = UUID.randomUUID();
-        String sql = "INSERT INTO coords (uuid, x, y, z, Description, Player, accessPublic) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO coords (uuid, x, y, z, Description, Player, Dimension, accessPublic) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement statement = connection.prepareStatement(sql);
 
         statement.setString(1, uuid.toString());
@@ -116,7 +118,8 @@ public class DataBaseManager {
         statement.setInt(4, z);
         statement.setString(5, description);
         statement.setString(6, player);
-        statement.setBoolean(7, accessPublic);
+        statement.setString(7, dimension);
+        statement.setBoolean(8, accessPublic);
         statement.executeUpdate();
         statement.close();
     }
