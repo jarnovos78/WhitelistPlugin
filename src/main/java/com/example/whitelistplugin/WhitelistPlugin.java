@@ -18,6 +18,7 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
 
@@ -57,10 +58,10 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, String @NotNull [] args) {
-        if (command.getName().equalsIgnoreCase("safePublicCords")) {
+        if (command.getName().equalsIgnoreCase("safeCords") && args[0].equalsIgnoreCase("public")) {
             return safeCords(sender, args, true);
         }
-        if(command.getName().equalsIgnoreCase("safePrivateCords")) {
+        if(command.getName().equalsIgnoreCase("safeCords") && args[0].equalsIgnoreCase("private")) {
             return safeCords(sender, args, false);
         }
         if(command.getName().equalsIgnoreCase("showCords")) {
@@ -75,8 +76,12 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, Command command, @NotNull String alias, String @NotNull [] args) {
         List<String> completions = new ArrayList<>();
-        if (command.getName().equalsIgnoreCase("safePublicCords")) {
-            if (args.length == 1) {
+        if (command.getName().equalsIgnoreCase("safeCords")) {
+            if(args.length == 1) {
+                completions.add("public");
+                completions.add("private");
+            }
+            if (args.length == 2) {
                 completions.add("<Name des Ortes>");
             }
         } else if (command.getName().equalsIgnoreCase("safePrivateCords")) {
@@ -121,7 +126,7 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
     }
 
     private boolean safeCords(CommandSender sender, String[] args, boolean accessPublic) {
-        if (args.length == 0) {
+        if (args.length == 1) {
             sender.sendMessage("Bitte gib einen Namen für den Ort an!");
             return false; // zeigt die Usage aus plugin.yml
         }
@@ -137,7 +142,7 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         int y = (int) playerLocation.getY();
         int z = (int) playerLocation.getZ();
         String coordinates = "(" + x + ", " + y + ", " + z + ")";
-        String coordinateDescription = String.join(" ", args);
+        String coordinateDescription = String.join(" ", args[1]);
 
         String safedLocation = coordinateDescription + " " + coordinates + " | " + playerName;
 

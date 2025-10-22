@@ -3,12 +3,9 @@ version: 1.0
 main: com.example.whitelistplugin.WhitelistPlugin
 api-version: 1.21
 commands:
-  safePublicCords:
+  safeCords:
     description: Speichert deine Aktuellen Koordinaten mit deiner Beschreibung
-    usage: /safePublicCords <Name des Ortes>
-  safePrivateCords:
-    description: Speichert deine Aktuellen Koordinaten mit deiner Beschreibung aber privat
-    usage: /safePrivateCords <Name des Ortes>
+    usage: /safeCords <accesslevel> <Name des Ortes>
   showCords:
     description: Zeigt einem Spieler gespeicherte Koordinaten an
     usage: /showCords <accesslevel>

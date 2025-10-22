@@ -127,6 +127,9 @@ public class DataBaseManager {
         statement.setString(1, player);
         statement.setString(2, description);
         int deletet = statement.executeUpdate();
+        try {
+            connection.commit();
+        } catch (SQLException ignored) {}
         statement.close();
         return deletet;
     }
