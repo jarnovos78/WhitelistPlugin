@@ -137,14 +137,18 @@ public class DataBaseManager {
         return deletet;
     }
 
-    public void editPrivateCordsName(String descriptionAlt, String descriptionNeu, String player) throws SQLException {
-        String sql = "UPDATE coords SET Description = ? WHERE Player = ? AND Description = ?";
+    public int editPrivateCordsName(String descriptionAlt, String descriptionNeu, String player) throws SQLException {
+        String sql = "UPDATE coords SET Description = ? WHERE Player = ? AND Description = ? AND accessPublic = false";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setString(1, descriptionNeu);
         statement.setString(2, player);
         statement.setString(3, descriptionAlt);
-        statement.executeUpdate();
+        int updatet = statement.executeUpdate();
+        try {
+            connection.commit();
+        } catch (SQLException ignored) {}
         statement.close();
+        return updatet;
     }
 
     public void closeDataBase() throws SQLException {

@@ -72,6 +72,9 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         if(command.getName().equalsIgnoreCase("deletePrivateCords")) {
             return deletePrivateCords(sender, args);
         }
+        if(command.getName().equalsIgnoreCase("editPrivateCords")) {
+            return editPrivateCords(sender, args);
+        }
         return false;
     }
 
@@ -98,6 +101,13 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         } else if (command.getName().equalsIgnoreCase("deletePrivateCords")) {
             if (args.length == 1) {
                 completions.add("<Name des Ortes>");
+            }
+        } else if(command.getName().equalsIgnoreCase("editPrivateCords")) {
+            if (args.length == 1) {
+                completions.add("<alter Name>");
+            }
+            if (args.length == 2) {
+                completions.add("<neuer Name>");
             }
         }
         return completions;
@@ -286,6 +296,38 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
 
         } catch (SQLException e) {
             getLogger().warning("Fehler beim aufrufen der Datenbank beim Löschen von Koordinaten: " + description + " durch Spieler: " + playerName);
+            getLogger().warning("Error: " + e);
+        }
+        return true;
+    }
+
+    public boolean editPrivateCords(CommandSender sender, String[] args){
+        if (args.length == 0) {
+            sender.sendMessage("Bitte gib einen alten Ort an!");
+            return false;
+        }
+        if(args.length == 1){
+            sender.sendMessage("Bitte gib einen Neuen Ort an!");
+            return false;
+        }
+        if(!(sender instanceof Player player)){
+            sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden!");
+            return false;
+        }
+
+        String playerName = player.getName();
+        String nameAlt = args[0];
+        String nameNeu = args[1];
+
+        try {
+            int updatet = dataBaseManager.editPrivateCordsName(nameAlt, nameNeu, playerName);
+            if(updatet == 1){
+                sender.sendMessage("Koordinaten erfolgreich editiert!");
+            } else {
+                sender.sendMessage("Koordinaten mit Namen: " + nameAlt + " existieren nicht!");
+            }
+        } catch (SQLException e) {
+            getLogger().warning("Fehler beim aufrufen der Datenbank beim bearbeiten von Koordinaten: " + nameAlt + " durch Spieler: " + playerName);
             getLogger().warning("Error: " + e);
         }
         return true;

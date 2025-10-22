@@ -12,3 +12,6 @@ commands:
   deletePrivateCords:
     description: Löscht die Koordinaten die diese Beschreibung haben
     usage: /deletePrivateCords <Name des Ortes>
+  editPrivateCords:
+    description: Ändert den alten Namen zu einem neuen
+    usage: /editPrivateCords <alter Name> <neuer Name>
