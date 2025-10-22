@@ -17,7 +17,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
@@ -59,10 +58,10 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, String @NotNull [] args) {
         if (command.getName().equalsIgnoreCase("safePublicCords")) {
-            return safeCordsPublic(sender, args);
+            return safeCords(sender, args, true);
         }
         if(command.getName().equalsIgnoreCase("safePrivateCords")) {
-            return safeCordsPrivate(sender, args);
+            return safeCords(sender, args, false);
         }
         if(command.getName().equalsIgnoreCase("showCords")){
             return showCords(sender, args);
@@ -114,7 +113,7 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         return "Spieler " + playerName + " wurde der whitelist hinzugefügt";
     }
 
-    private boolean safeCords(CommandSender sender, String[] args){
+    private boolean safeCords(CommandSender sender, String[] args, boolean accessPublic) {
         if (args.length == 0) {
             sender.sendMessage("Bitte gib einen Namen für den Ort an!");
             return false; // zeigt die Usage aus plugin.yml
@@ -135,98 +134,37 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
 
         String safedLocation = coordinateDescription + " " + coordinates + " | " + playerName;
 
-        //Nachricht für die Konsole
-        getLogger().info(playerName + " hat folgende Koordinaten Gespeichert: " + safedLocation);
+        try {
+            boolean alreadyExists = dataBaseManager.checkExists(coordinateDescription, accessPublic, playerName);
+            if(alreadyExists) {
+                sender.sendMessage("Fehler: Dieser Ort wurde schoneinmal gespeichert!");
+                return true;
+            }
+        }catch(Exception e) {
+            getLogger().warning("Fehler beim aufrufen der Datenbank beim Speichern von Koordinaten: " + safedLocation);
+            getLogger().warning("Error: " + e);
+        }
 
-        int responseCode = sendWebhookDiscordMessage(safedLocation);
+        if(accessPublic) {
+            int responseCode = sendWebhookDiscordMessage(safedLocation);
 
-        if(responseCode != 204){
-            sender.sendMessage("Fehler beim speichern der Koordinaten. Bitte versuche es erneut." + responseCode);
-            return false;
+            if (responseCode != 204) {
+                sender.sendMessage("Fehler beim speichern der Koordinaten. Bitte versuche es erneut." + responseCode);
+                return false;
+            }
         }
 
         try {
-            dataBaseManager.safeCordsPublic(x, y, z, coordinateDescription, playerName);
+            dataBaseManager.safeCords(x, y, z, coordinateDescription, playerName, accessPublic);
         }catch (Exception e){
-            e.printStackTrace();
+            getLogger().warning("Fehler beim aufrufen der Datenbank beim Speichern von Koordinaten: " + safedLocation);
+            getLogger().warning("Error: " + e);
         }
 
         sender.sendMessage("Location " + coordinateDescription + " wurde mit den folgenden Koordinaten gespeichert: " + coordinates);
-        return true;
-    }
-
-    private boolean safeCordsPublic(CommandSender sender, String[] args) {
-        if (args.length == 0) {
-            sender.sendMessage("Bitte gib einen Namen für den Ort an!");
-            return false; // zeigt die Usage aus plugin.yml
-        }
-
-        if(!(sender instanceof Player player)){
-            sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden!");
-            return false;
-        }
-        String playerName = player.getName();
-
-        Location playerLocation = player.getLocation();
-        int x = (int) playerLocation.getX();
-        int y = (int) playerLocation.getY();
-        int z = (int) playerLocation.getZ();
-        String coordinates = "(" + x + ", " + y + ", " + z + ")";
-        String coordinateDescription = String.join(" ", args);
-
-        String safedLocation = coordinateDescription + " " + coordinates + " | " + playerName;
-
         //Nachricht für die Konsole
         getLogger().info(playerName + " hat folgende Koordinaten Gespeichert: " + safedLocation);
 
-        int responseCode = sendWebhookDiscordMessage(safedLocation);
-
-        if(responseCode != 204){
-            sender.sendMessage("Fehler beim speichern der Koordinaten. Bitte versuche es erneut." + responseCode);
-            return false;
-        }
-
-        try {
-            dataBaseManager.safeCordsPublic(x, y, z, coordinateDescription, playerName);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-        sender.sendMessage("Location " + coordinateDescription + " wurde mit den folgenden Koordinaten gespeichert: " + coordinates);
-        return true;
-    }
-
-    private boolean safeCordsPrivate(CommandSender sender, String[] args) {
-        if (args.length == 0) {
-            sender.sendMessage("Bitte gib einen Namen für den Ort an!");
-            return false; // zeigt die Usage aus plugin.yml
-        }
-
-        if(!(sender instanceof Player player)){
-            sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden!");
-            return false;
-        }
-        String playerName = player.getName();
-
-        Location playerLocation = player.getLocation();
-        int x = (int) playerLocation.getX();
-        int y = (int) playerLocation.getY();
-        int z = (int) playerLocation.getZ();
-        String coordinates = "(" + x + ", " + y + ", " + z + ")";
-        String coordinateDescription = String.join(" ", args);
-
-        String safedLocation = coordinateDescription + " " + coordinates + " | " + playerName;
-
-        //Nachricht für die Konsole
-        getLogger().info(playerName + " hat folgende Koordinaten Gespeichert: " + safedLocation);
-
-        try {
-            dataBaseManager.safeCordsPrivate(x, y, z, coordinateDescription, playerName);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-        sender.sendMessage("Location " + coordinateDescription + " wurde mit den folgenden Koordinaten gespeichert: " + coordinates);
         return true;
     }
 

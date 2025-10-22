@@ -1,6 +1,7 @@
 package com.example.whitelistplugin;
 
 import org.jetbrains.annotations.NotNull;
+import spark.Response;
 
 import java.io.File;
 import java.sql.*;
@@ -76,24 +77,35 @@ public class DataBaseManager {
         return cordList;
     }
 
+    public boolean checkExists(String description, boolean accessPublic, String player) throws SQLException {
+        String sql;
+        if(accessPublic) {
+            sql = "SELECT Description FROM coords WHERE Description = ? AND accessPublic = true";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, description);
+            ResultSet result = statement.executeQuery();
+            if(result.next()) {
+                statement.close();
+                return true;
+            }
+            statement.close();
+        } else {
+            sql = "SELECT Description FROM coords WHERE Player = ? AND Description = ? AND accessPublic = false";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, player);
+            statement.setString(2, description);
+            ResultSet result = statement.executeQuery();
+            if(result.next()) {
+                statement.close();
+                return true;
+            }
+            statement.close();
+        }
 
-    public void safeCordsPublic(int x, int y, int z, String description, String player ) throws SQLException {
-        UUID uuid = UUID.randomUUID();
-        String sql = "INSERT INTO coords (uuid, x, y, z, Description, Player, accessPublic) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        PreparedStatement statement = connection.prepareStatement(sql);
-
-        statement.setString(1, uuid.toString());
-        statement.setInt(2, x);
-        statement.setInt(3, y);
-        statement.setInt(4, z);
-        statement.setString(5, description);
-        statement.setString(6, player);
-        statement.setBoolean(7, true);
-        statement.executeUpdate();
-        statement.close();
+        return false;
     }
 
-    public void safeCordsPrivate(int x, int y, int z, String description, String player ) throws SQLException {
+    public void safeCords(int x, int y, int z, String description, String player, boolean accessPublic) throws SQLException {
         UUID uuid = UUID.randomUUID();
         String sql = "INSERT INTO coords (uuid, x, y, z, Description, Player, accessPublic) VALUES (?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement statement = connection.prepareStatement(sql);
@@ -104,7 +116,7 @@ public class DataBaseManager {
         statement.setInt(4, z);
         statement.setString(5, description);
         statement.setString(6, player);
-        statement.setBoolean(7, false);
+        statement.setBoolean(7, accessPublic);
         statement.executeUpdate();
         statement.close();
     }
