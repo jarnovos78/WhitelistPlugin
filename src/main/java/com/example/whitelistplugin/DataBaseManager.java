@@ -35,6 +35,7 @@ public class DataBaseManager {
                 "z INTEGER, " +
                 "Description TEXT, " +
                 "Player TEXT, " +
+                "accessPublic BOOLEAN, " +
                 "PRIMARY KEY (uuid))";
 
         Statement statement = connection.createStatement();
@@ -43,7 +44,7 @@ public class DataBaseManager {
     }
 
     public List<LocationEntity> loadCords() throws SQLException {
-        String sql = "SELECT Description, x, y, z, Player FROM coords";
+        String sql = "SELECT Description, x, y, z, Player FROM coords WHERE accessPublic = true";
         PreparedStatement statement = connection.prepareStatement(sql);
         return getLocationEntities(statement);
     }
@@ -76,9 +77,9 @@ public class DataBaseManager {
     }
 
 
-    public void safeCords(int x, int y, int z, String description, String player ) throws SQLException {
+    public void safeCordsPublic(int x, int y, int z, String description, String player ) throws SQLException {
         UUID uuid = UUID.randomUUID();
-        String sql = "INSERT INTO coords (uuid, x, y, z, Description, Player) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO coords (uuid, x, y, z, Description, Player, accessPublic) VALUES (?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement statement = connection.prepareStatement(sql);
 
         statement.setString(1, uuid.toString());
@@ -87,6 +88,23 @@ public class DataBaseManager {
         statement.setInt(4, z);
         statement.setString(5, description);
         statement.setString(6, player);
+        statement.setBoolean(7, true);
+        statement.executeUpdate();
+        statement.close();
+    }
+
+    public void safeCordsPrivate(int x, int y, int z, String description, String player ) throws SQLException {
+        UUID uuid = UUID.randomUUID();
+        String sql = "INSERT INTO coords (uuid, x, y, z, Description, Player, accessPublic) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        PreparedStatement statement = connection.prepareStatement(sql);
+
+        statement.setString(1, uuid.toString());
+        statement.setInt(2, x);
+        statement.setInt(3, y);
+        statement.setInt(4, z);
+        statement.setString(5, description);
+        statement.setString(6, player);
+        statement.setBoolean(7, false);
         statement.executeUpdate();
         statement.close();
     }

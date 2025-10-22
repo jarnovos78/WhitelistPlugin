@@ -17,13 +17,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
 
     private final String API_KEY = "T3Fees290DevW2";
 
-    private final String WebhookURL = "https://discord.com/api/webhooks/1422160876227526656/mbqwQrJCCUeCmzLCs8LPLNsMn4k95u-wm3k55Lz--cuY8Qb-jFqW8WD4ncEGvc6LDly3";
+    private final String WebhookURL = "https://discord.com/api/webhooks/1428420414178332833/M-3x-Gb2wRpuV9koY12-xjWM1jJp4zW4ntNCpNZHhI210SliL6QAsX41NzRA5TqJi9ou";
 
     private DataBaseManager dataBaseManager;
 
@@ -57,13 +58,14 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, String @NotNull [] args) {
-        if (command.getName().equalsIgnoreCase("safeCords")) {
-            return safeCords(sender, args);
+        if (command.getName().equalsIgnoreCase("safePublicCords")) {
+            return safeCordsPublic(sender, args);
         }
-        if(command.getName().equalsIgnoreCase("showAllCords")){
-            return showCords(sender);
-        } else if (command.getName().equalsIgnoreCase("showPersonalCords")){
-            return showPrivateCords(sender);
+        if(command.getName().equalsIgnoreCase("safePrivateCords")) {
+            return safeCordsPrivate(sender, args);
+        }
+        if(command.getName().equalsIgnoreCase("showCords")){
+            return showCords(sender, args);
         }
         return false;
     }
@@ -71,9 +73,18 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, Command command, @NotNull String alias, String @NotNull [] args) {
         List<String> completions = new ArrayList<>();
-        if (command.getName().equalsIgnoreCase("safeCords")) {
+        if (command.getName().equalsIgnoreCase("safePublicCords")) {
             if (args.length == 1) {
                 completions.add("<Name des Ortes>");
+            }
+        } else if (command.getName().equalsIgnoreCase("safePrivateCords")) {
+            if (args.length == 1) {
+                completions.add("<Name des Ortes>");
+            }
+        } else if(command.getName().equalsIgnoreCase("showCords")) {
+            if (args.length == 1) {
+                completions.add("public");
+                completions.add("private");
             }
         }
         return completions;
@@ -135,7 +146,7 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         }
 
         try {
-            dataBaseManager.safeCords(x, y, z, coordinateDescription, playerName);
+            dataBaseManager.safeCordsPublic(x, y, z, coordinateDescription, playerName);
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -144,16 +155,101 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         return true;
     }
 
-    private boolean showCords(CommandSender sender){
-        try{
+    private boolean safeCordsPublic(CommandSender sender, String[] args) {
+        if (args.length == 0) {
+            sender.sendMessage("Bitte gib einen Namen für den Ort an!");
+            return false; // zeigt die Usage aus plugin.yml
+        }
+
+        if(!(sender instanceof Player player)){
+            sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden!");
+            return false;
+        }
+        String playerName = player.getName();
+
+        Location playerLocation = player.getLocation();
+        int x = (int) playerLocation.getX();
+        int y = (int) playerLocation.getY();
+        int z = (int) playerLocation.getZ();
+        String coordinates = "(" + x + ", " + y + ", " + z + ")";
+        String coordinateDescription = String.join(" ", args);
+
+        String safedLocation = coordinateDescription + " " + coordinates + " | " + playerName;
+
+        //Nachricht für die Konsole
+        getLogger().info(playerName + " hat folgende Koordinaten Gespeichert: " + safedLocation);
+
+        int responseCode = sendWebhookDiscordMessage(safedLocation);
+
+        if(responseCode != 204){
+            sender.sendMessage("Fehler beim speichern der Koordinaten. Bitte versuche es erneut." + responseCode);
+            return false;
+        }
+
+        try {
+            dataBaseManager.safeCordsPublic(x, y, z, coordinateDescription, playerName);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        sender.sendMessage("Location " + coordinateDescription + " wurde mit den folgenden Koordinaten gespeichert: " + coordinates);
+        return true;
+    }
+
+    private boolean safeCordsPrivate(CommandSender sender, String[] args) {
+        if (args.length == 0) {
+            sender.sendMessage("Bitte gib einen Namen für den Ort an!");
+            return false; // zeigt die Usage aus plugin.yml
+        }
+
+        if(!(sender instanceof Player player)){
+            sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden!");
+            return false;
+        }
+        String playerName = player.getName();
+
+        Location playerLocation = player.getLocation();
+        int x = (int) playerLocation.getX();
+        int y = (int) playerLocation.getY();
+        int z = (int) playerLocation.getZ();
+        String coordinates = "(" + x + ", " + y + ", " + z + ")";
+        String coordinateDescription = String.join(" ", args);
+
+        String safedLocation = coordinateDescription + " " + coordinates + " | " + playerName;
+
+        //Nachricht für die Konsole
+        getLogger().info(playerName + " hat folgende Koordinaten Gespeichert: " + safedLocation);
+
+        try {
+            dataBaseManager.safeCordsPrivate(x, y, z, coordinateDescription, playerName);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        sender.sendMessage("Location " + coordinateDescription + " wurde mit den folgenden Koordinaten gespeichert: " + coordinates);
+        return true;
+    }
+
+    private boolean showCords(CommandSender sender, String[] args){
+        String description = String.join(" ", args);
+        if(description.equalsIgnoreCase("public")) {
+            return showPublicCords(sender);
+        } else if (description.equalsIgnoreCase("private")) {
+            return showPrivateCords(sender);
+        }
+        return false;
+    }
+
+    private boolean showPublicCords(CommandSender sender) {
+        try {
             List<LocationEntity> cordList = dataBaseManager.loadCords();
-            for(LocationEntity location : cordList){
+            for (LocationEntity location : cordList) {
                 String message = location.getDescription() + " (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
                 sender.sendMessage(message);
             }
             return true;
 
-        } catch (Exception e){
+        } catch (Exception e) {
             sender.sendMessage("Es ist ein Fehler beim Laden der Koordinaten aufgetreten. Bitte versuche es erneut.");
             e.printStackTrace();
             return false;
