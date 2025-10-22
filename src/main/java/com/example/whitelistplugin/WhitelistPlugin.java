@@ -188,6 +188,9 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
     private boolean showPublicCords(CommandSender sender) {
         try {
             List<LocationEntity> cordList = dataBaseManager.loadCords();
+            if(cordList.isEmpty()) {
+                sender.sendMessage("Es wurden noch keine Cords gespeichert!");
+            }
             for (LocationEntity location : cordList) {
                 String message = location.getDescription() + " (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
                 sender.sendMessage(message);
@@ -204,6 +207,10 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
     private boolean showPrivateCords(CommandSender sender){
         try {
             List<LocationEntity> cordList = dataBaseManager.loadPlayerSpecificCords(sender.getName());
+            if(cordList.isEmpty()) {
+                sender.sendMessage("Du hast noch keine privaten Cords gespeichert!");
+                return true;
+            }
             for(LocationEntity location : cordList){
                 String message = location.getDescription() + " (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
                 sender.sendMessage(message);
