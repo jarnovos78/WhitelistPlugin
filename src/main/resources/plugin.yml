@@ -15,3 +15,11 @@ commands:
   editPrivateCords:
     description: Ändert den alten Namen zu einem neuen
     usage: /editPrivateCords <alter Name> <neuer Name>
+  deletePublicCords:
+    description: Löscht die Koordinaten die diese Beschreibung haben
+    usage: /deletePublicCords <Name des Ortes>
+    permission: coords.delete
+permissions:
+  coords.delete:
+    description: Erlaubt das Löschen von gespeicherten Koordinaten
+    default: op

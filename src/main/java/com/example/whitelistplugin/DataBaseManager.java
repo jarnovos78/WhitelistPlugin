@@ -137,6 +137,18 @@ public class DataBaseManager {
         return deletet;
     }
 
+    public int deletePublicCords(String description) throws SQLException {
+        String sql = "DELETE FROM coords WHERE Description = ? AND accessPublic = true";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setString(1, description);
+        int deletet = statement.executeUpdate();
+        try {
+            connection.commit();
+        } catch (SQLException ignored) {}
+        statement.close();
+        return deletet;
+    }
+
     public int editPrivateCordsName(String descriptionAlt, String descriptionNeu, String player) throws SQLException {
         String sql = "UPDATE coords SET Description = ? WHERE Player = ? AND Description = ? AND accessPublic = false";
         PreparedStatement statement = connection.prepareStatement(sql);

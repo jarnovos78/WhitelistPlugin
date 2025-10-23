@@ -75,6 +75,9 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
         if(command.getName().equalsIgnoreCase("editPrivateCords")) {
             return editPrivateCords(sender, args);
         }
+        if(sender.isOp() && command.getName().equalsIgnoreCase("deletePublicCords")) {
+            return deletePublicCords(sender, args);
+        }
         return false;
     }
 
@@ -108,6 +111,10 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
             }
             if (args.length == 2) {
                 completions.add("<neuer Name>");
+            }
+        } else if (sender.isOp() && command.getName().equalsIgnoreCase("deletePublicCords")) {
+            if (args.length == 1) {
+                completions.add("<Name des Ortes>");
             }
         }
         return completions;
@@ -288,6 +295,34 @@ public class WhitelistPlugin extends JavaPlugin implements TabCompleter {
 
         try{
             int deletet = dataBaseManager.deletePrivateCords(playerName, description);
+            if(deletet == 1){
+                sender.sendMessage("Die Koordinaten mit Namen: " + description  + " wurden erfolgreich gelöscht!");
+            } else {
+                sender.sendMessage("Koordinaten mit Namen: " + description + " existieren nicht!");
+            }
+
+        } catch (SQLException e) {
+            getLogger().warning("Fehler beim aufrufen der Datenbank beim Löschen von Koordinaten: " + description + " durch Spieler: " + playerName);
+            getLogger().warning("Error: " + e);
+        }
+        return true;
+    }
+
+    public boolean deletePublicCords(CommandSender sender, String[] args){
+        if (args.length == 0) {
+            sender.sendMessage("Bitte gib einen Namen für den Ort an!");
+            return false;
+        }
+
+        if(!(sender instanceof Player player)){
+            sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden!");
+            return false;
+        }
+        String playerName = player.getName();
+        String description = String.join(" ", args);
+
+        try{
+            int deletet = dataBaseManager.deletePublicCords(description);
             if(deletet == 1){
                 sender.sendMessage("Die Koordinaten mit Namen: " + description  + " wurden erfolgreich gelöscht!");
             } else {
